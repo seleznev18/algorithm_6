@@ -1,0 +1,91 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+vector<int> hash_div(vector<int> keys);
+vector<int> hash_mult(vector<int> keys);
+vector<int> hash_div(vector<int> keys) {
+    vector<int> ans;
+    int n = size(keys), m = n + 1;
+    while (true) {
+        if (m < 3) {
+            break;
+        }
+        bool flag = true;
+        for (int i = 2; i <= (int)(sqrt(m)) + 5; i++) {
+            if (m % i == 0) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag == true) {
+            break;
+        }
+        else {
+            m++;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        ans.push_back(keys.at(i) % m);
+    }
+    return ans;
+}
+vector<int> hash_mult(vector<int> keys) {
+    int n = size(keys) * 1;
+    double m;
+    for (int i = 1; i < 555; i++) {
+        if (pow(2, i) > n) {
+            m = pow(2, i);
+            break;
+        }
+    }
+    vector<int> ans;
+    double trash;
+    double A = (sqrt(5) - 1) / 2;
+    for (int i = 0; i < n; i++) {
+        double b = A * keys.at(i),fractpart;
+        fractpart = modf(b, &trash);
+        fractpart *= m;
+        ans.push_back((int)fractpart);
+        
+    }
+    return ans;
+}
+int main()
+{
+    setlocale(LC_ALL, "rus");
+    string s;
+    getline(cin, s);
+    cout << "Изначальный ввод:" << s<<endl;
+    vector<int>keys;
+    for (int i = 0; i < s.length(); i++) {
+        keys.push_back((int)s[i]);
+    }
+    cout << "Перевод в ASCII-код:";
+    for (int i = 0; i < s.length(); i++) {
+        cout << keys.at(i) << " ";
+    }
+    cout << endl;
+    for (int i = 1; i <= 10; i++) {
+        if (i % 2 == 1) {
+            keys = hash_div(keys);
+            cout << "Сообщение после хэширования делением   #" << i << ":";
+            for (int i = 0; i < s.length(); i++) {
+                cout << keys.at(i) << " ";
+            }
+            cout << endl;
+        }
+        else {
+            keys = hash_mult(keys);
+            cout << "Сообщение после хэширования умножением #" << i << ":";
+            for (int i = 0; i < s.length(); i++) {
+                cout << keys.at(i) << " ";
+            }
+            cout << endl;
+        }
+    }
+    return 0;
+}
