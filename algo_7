@@ -1,0 +1,222 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <algorithm>
+#include <time.h>
+#include <map>
+using namespace std;
+int naive_find(string sample, string s);
+int rabin_karp_find(string sample, string s);
+int boyer_moore_find(string sample, string s);
+int KMP_find(string sample, string s);
+string prime_500();
+int naive_find(string sample, string s) {
+    int k = 0;
+    bool flag;
+    for (int i = 0; i <= s.length() - sample.length(); i++) {
+        flag = true;
+        for (int j = 0; j < sample.length(); j++) {
+            if (sample[j] != s[i + j]) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag == true)
+            k++;
+    }
+    return k;
+}
+int rabin_karp_find(string sample, string s) {
+    int k = 0, n = s.length();
+    unordered_map <char, int> mp;
+    for (int i = 0; i < n; i++) {
+        mp[s[i]] = 1;
+    }
+    vector<char> symb;
+    for (auto a : mp) {
+        if (a.second == 1) {
+            symb.push_back(a.first);
+        }
+    }
+    symb.push_back('1');
+    int m = sample.length() - 1, X = size(symb) * 1 - 1, sample_val = 0;
+    for (int i = m; i >= 0; i--) {
+        sample_val += (distance(symb.begin(), find(symb.begin(), symb.end(), sample[m - i])) * pow(X, i));
+    }
+    int buff_hash;
+    for (int i = 0; i <= s.length() - sample.length(); i++) {
+        buff_hash = 0;
+        for (int j = m; j >= 0; j--) {
+            buff_hash += (distance(symb.begin(), find(symb.begin(), symb.end(), s[m - j + i])) * pow(X, j));
+        }
+        if (buff_hash == sample_val) {
+            bool flag = true;
+            for (int j = 0; j < sample.length(); j++) {
+                if (sample[j] != s[i + j]) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag == true) {
+                k++;
+            }
+        }
+    }
+    return k;
+}
+int boyer_moore_find(string sample, string s) {
+    int n = s.length(), i = sample.length() - 1, k = 0;
+    map<char, int> D_table;
+    for (int j = 0; j < sample.length(); j++) {
+        D_table[sample[j]] = sample.length() - j - 1;
+    }
+    while (i < n) {
+        if (sample[sample.length() - 1] != s[i]) {
+            if (D_table[s[i]] == 0) {
+                i += sample.length();
+            }
+            else {
+                i += D_table[s[i]];
+            }
+        }
+        else {
+            bool broke = false;
+            for (int j = 0; j < sample.length(); j++) {
+                if (sample[sample.length() - 1 - j] != s[i - j]) {
+                    if (D_table[s[i]] == 0) {
+                        i += (sample.length()-j);
+                    }
+                    else {
+                        i += D_table[s[i-j]];
+                    }
+                    broke = true;
+                    break;
+                }
+            }
+            if (broke == false) {
+                k++;
+                i ++;
+            }
+        }
+    }
+    return k;
+}
+int KMP_find(string sample, string s) {
+    int n = s.length(),k=0;
+    vector<int> prefix_f(sample.length(), 0);
+    for (int i = 1; i < sample.length(); i++)
+        for (int len = 1; len <= i; len++)
+            if (s.substr(0, len) == s.substr(i - len + 1, len))
+                prefix_f[i] = len;
+    int i = 0;
+    while (i < n) {
+        int lastj = 0;
+        bool broke = false;
+        for (int j = 0; j < sample.length(); j++) {
+            if (sample[j] != s[i + j]) {
+                broke = true;
+                break;
+            }
+            lastj = j;
+        }
+        if (broke == false) {
+            k++;
+            i++;
+        }
+        else {
+            i += (lastj - prefix_f.at(lastj) + 1);
+        }
+    }
+    return k;
+}
+string prime_500() {
+    vector<int> ans = { 2,3,5,7,11 };
+    int i = 13;
+    while (size(ans)*1 < 500) {
+        bool flag = true;
+        for (int j = 2; j <= round(sqrt(i)) + 2; j++) {
+            if (i % j == 0) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag == true) {
+            ans.push_back(i);
+            i += 2;
+        }
+        else {
+            i++;
+        }
+    }
+    string s="";
+    for (int i = 0; i < 500; i++) {
+        s += (to_string(ans.at(i)));
+    }
+    return s;
+}
+bool comp(pair<int,int> a, pair<int,int> b) {
+    return a.second > b.second;
+}
+int main()
+{
+    setlocale(LC_ALL, "rus");
+    string main_s = prime_500();
+    clock_t st_naive = clock();
+    vector<pair<int, int>> naive_count;
+    for (int i = 10; i < 100; i++) {
+        string sample = to_string(i);
+        int k = naive_find(sample, main_s);
+        naive_count.push_back(make_pair(i,k));
+    }
+    sort(naive_count.begin(), naive_count.end(), comp);
+    clock_t end_naive = clock();
+    double time_naive = (double)(end_naive - st_naive) / CLOCKS_PER_SEC;
+    cout << "Наивный поиск потратил " <<time_naive<<" секунд:"<< endl;
+    cout << "#1:Число " << naive_count.at(0).first<<" встречается "   << naive_count.at(0).second << " раз"<<endl;
+    cout << "#2:Число " << naive_count.at(1).first << " встречается " << naive_count.at(1).second << " раз"<<endl;
+    cout << "#3:Число " << naive_count.at(2).first << " встречается " << naive_count.at(2).second << " раз"<<endl;
+    clock_t st_rabin_karp = clock();
+    vector<pair<int, int>> rabin_karp_count;
+    for (int i = 10; i < 100; i++) {
+        string sample = to_string(i);
+        int k = rabin_karp_find(sample, main_s);
+        rabin_karp_count.push_back(make_pair(i, k));
+    }
+    sort(rabin_karp_count.begin(), rabin_karp_count.end(), comp);
+    clock_t end_rabin_karp = clock();
+    double time_rabin_karp = (double)(end_rabin_karp - st_rabin_karp) / CLOCKS_PER_SEC;
+    cout << "Алгоритм Рабина-Карпа потратил " << time_rabin_karp << " секунд:" << endl;
+    cout << "#1:Число " << rabin_karp_count.at(0).first << " встречается " << rabin_karp_count.at(0).second << " раз" << endl;
+    cout << "#2:Число " << rabin_karp_count.at(1).first << " встречается " << rabin_karp_count.at(1).second << " раз" << endl;
+    cout << "#3:Число " << rabin_karp_count.at(2).first << " встречается " << rabin_karp_count.at(2).second << " раз" << endl;
+    clock_t st_boyer_moore = clock();
+    vector<pair<int, int>> boyer_moore_count;
+    for (int i = 10; i < 100; i++) {
+        string sample = to_string(i);
+        int k = boyer_moore_find(sample, main_s);
+        boyer_moore_count.push_back(make_pair(i, k));
+    }
+    sort(boyer_moore_count.begin(), boyer_moore_count.end(), comp);
+    clock_t end_boyer_moore = clock();
+    double time_boyer_moore = (double)(end_boyer_moore - st_boyer_moore) / CLOCKS_PER_SEC;
+    cout << "Алгоритм Бойера-Мура потратил " << time_boyer_moore << " секунд:" << endl;
+    cout << "#1:Число " << boyer_moore_count.at(0).first << " встречается " << boyer_moore_count.at(0).second << " раз" << endl;
+    cout << "#2:Число " << boyer_moore_count.at(1).first << " встречается " << boyer_moore_count.at(1).second << " раз" << endl;
+    cout << "#3:Число " << boyer_moore_count.at(2).first << " встречается " << boyer_moore_count.at(2).second << " раз" << endl;
+    clock_t st_KMP = clock();
+    vector<pair<int, int>> KMP_count;
+    for (int i = 10; i < 100; i++) {
+        string sample = to_string(i);
+        int k = KMP_find(sample, main_s);
+        KMP_count.push_back(make_pair(i, k));
+    }
+    sort(KMP_count.begin(), KMP_count.end(), comp);
+    clock_t end_KMP = clock();
+    double time_KMP = (double)(end_KMP - st_KMP) / CLOCKS_PER_SEC;
+    cout << "Алгоритм Кнута-Морриса-Пратта потратил " << time_KMP << " секунд:" << endl;
+    cout << "#1:Число " << KMP_count.at(0).first << " встречается " << KMP_count.at(0).second << " раз" << endl;
+    cout << "#2:Число " << KMP_count.at(1).first << " встречается " << KMP_count.at(1).second << " раз" << endl;
+    cout << "#3:Число " << KMP_count.at(2).first << " встречается " << KMP_count.at(2).second << " раз" << endl;
+    return 0;
+}
